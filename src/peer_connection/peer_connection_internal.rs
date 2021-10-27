@@ -1,7 +1,7 @@
 use super::*;
 use std::sync::atomic::AtomicIsize;
 
-pub(crate) struct PeerConnectionInternal {
+pub struct PeerConnectionInternal {
     /// a value containing the last known greater mid value
     /// we internally generate mids as numbers. Needed since JSEP
     /// requires that when reusing a media section a new unique mid
@@ -22,14 +22,14 @@ pub(crate) struct PeerConnectionInternal {
     pub(super) is_negotiation_needed: Arc<AtomicBool>,
     pub(super) signaling_state: Arc<AtomicU8>,
 
-    pub(super) ice_transport: Arc<RTCIceTransport>,
-    pub(super) dtls_transport: Arc<RTCDtlsTransport>,
+    pub ice_transport: Arc<RTCIceTransport>,
+    pub dtls_transport: Arc<RTCDtlsTransport>,
     pub(super) on_peer_connection_state_change_handler:
         Arc<Mutex<Option<OnPeerConnectionStateChangeHdlrFn>>>,
     pub(super) peer_connection_state: Arc<AtomicU8>,
     pub(super) ice_connection_state: Arc<AtomicU8>,
 
-    pub(super) sctp_transport: Arc<RTCSctpTransport>,
+    pub sctp_transport: Arc<RTCSctpTransport>,
     pub(super) rtp_transceivers: Arc<Mutex<Vec<Arc<RTCRtpTransceiver>>>>,
 
     pub(super) on_track_handler: Arc<Mutex<Option<OnTrackHdlrFn>>>,
@@ -38,7 +38,7 @@ pub(crate) struct PeerConnectionInternal {
         Arc<Mutex<Option<OnICEConnectionStateChangeHdlrFn>>>,
     pub(super) on_data_channel_handler: Arc<Mutex<Option<OnDataChannelHdlrFn>>>,
 
-    pub(super) ice_gatherer: Arc<RTCIceGatherer>,
+    pub ice_gatherer: Arc<RTCIceGatherer>,
 
     pub(super) current_local_description: Arc<Mutex<Option<RTCSessionDescription>>>,
     pub(super) current_remote_description: Arc<Mutex<Option<RTCSessionDescription>>>,

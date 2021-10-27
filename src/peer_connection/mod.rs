@@ -5,7 +5,7 @@ pub mod certificate;
 pub mod configuration;
 pub mod offer_answer_options;
 pub(crate) mod operation;
-mod peer_connection_internal;
+pub mod peer_connection_internal;
 pub mod peer_connection_state;
 pub mod policy;
 pub mod sdp;
@@ -191,7 +191,7 @@ pub struct RTCPeerConnection {
 
     interceptor_rtcp_writer: Arc<dyn RTCPWriter + Send + Sync>,
 
-    pub(crate) internal: Arc<PeerConnectionInternal>,
+    pub internal: Arc<PeerConnectionInternal>,
 }
 
 impl RTCPeerConnection {
