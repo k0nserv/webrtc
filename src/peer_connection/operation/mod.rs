@@ -14,6 +14,7 @@ use crate::error::Result;
 /// Operation is a function
 pub struct Operation(
     pub Box<dyn (FnMut() -> Pin<Box<dyn Future<Output = bool> + Send + 'static>>) + Send + Sync>,
+    pub &'static str,
 );
 
 impl fmt::Debug for Operation {
@@ -38,9 +39,9 @@ impl Operations {
         let l = Arc::clone(&length);
         let ops_tx = Arc::new(ops_tx);
         let ops_tx2 = Arc::clone(&ops_tx);
-        tokio::spawn(async move {
-            Operations::start(l, ops_tx, ops_rx, close_rx).await;
-        });
+
+        let future = Operations::start(l, ops_tx, ops_rx, close_rx);
+        tokio::spawn(future);
 
         Operations {
             length,
@@ -81,15 +82,18 @@ impl Operations {
         let wg = WaitGroup::new();
         let mut w = Some(wg.worker());
         let _ = self
-            .enqueue(Operation(Box::new(move || {
-                let _d = w.take();
-                Box::pin(async { false })
-            })))
+            .enqueue(Operation(
+                Box::new(move || {
+                    let _d = w.take();
+                    Box::pin(async { false })
+                }),
+                "Operation::done",
+            ))
             .await;
         wg.wait().await;
     }
 
-    pub(crate) async fn start(
+    async fn start(
         length: Arc<AtomicUsize>,
         ops_tx: Arc<mpsc::UnboundedSender<Operation>>,
         mut ops_rx: mpsc::UnboundedReceiver<Operation>,
@@ -101,13 +105,16 @@ impl Operations {
                     break;
                 }
                 result = ops_rx.recv() => {
-                    if let Some(mut f) = result {
-                        length.fetch_sub(1, Ordering::SeqCst);
-                        if f.0().await {
-                            // Requeue this operation
-                            let _ = Operations::enqueue_inner(f, &ops_tx, &length);
-                        }
+                    println!("Got value {:?}", result);
+                    let mut f = result.unwrap();
+                    let old_value = length.fetch_sub(1, Ordering::SeqCst);
+                    let name = f.1;
+                    println!("Running operation({}), old length: {}", f.1, old_value);
+                    if f.0().await {
+                        // Requeue this operation
+                        let _ = Operations::enqueue_inner(f, &ops_tx, &length);
                     }
+                    println!("Operation({}) done", name);
                 }
             }
         }

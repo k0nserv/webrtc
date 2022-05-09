@@ -138,7 +138,9 @@ impl PeerConnectionInternal {
         is_renegotiation: bool,
         remote_desc: Arc<RTCSessionDescription>,
         sdp_semantics: RTCSdpSemantics,
+        name: &'static str,
     ) -> Result<()> {
+        println!("start_rtp({})", name);
         let mut track_details = if let Some(parsed) = &remote_desc.parsed {
             track_details_from_sdp(parsed)
         } else {
@@ -217,6 +219,7 @@ impl PeerConnectionInternal {
             }
         }
 
+        println!("end of start_rtp({})", name);
         Ok(())
     }
 
